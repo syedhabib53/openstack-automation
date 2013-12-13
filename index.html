@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Openstack-automation : Openstack deployment using saltstack" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Openstack-automation</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/Akilesh1597/openstack-automation">View on GitHub</a>
+
+          <h1 id="project_title">Openstack-automation</h1>
+          <h2 id="project_tagline">Openstack deployment using saltstack</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/Akilesh1597/openstack-automation/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/Akilesh1597/openstack-automation/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="openstack-automation" class="anchor" href="#openstack-automation"><span class="octicon octicon-link"></span></a>openstack-automation</h1>
+
+<p>Openstack deployment using saltstack</p>
+
+<p>There are several methods for automated deployment of openstack cluster. In this blog we attempt to do it using <a href="http://docs.saltstack.com/" title="Saltstack">saltstack</a>. There is almost no coding involved and it can be easily maintained. Above all it is as easy as talking to your servers and asking them to configure themselves. </p>
+
+<p>Saltstack provides us an infrastructure management framework that makes our job easier. Saltstack supports most of tasks that you would want to perform while installing openstack and more. We might not need any programming to do so. All we do need to do is define our cluster as below.</p>
+
+<pre>
+{
+    "controller": [
+        "hawk"
+    ],
+    "compute": [
+        "lammer"
+    ],
+    "install": {
+        "controller": [
+            "generics.host",
+            "generics.havana",
+            "generics.ntp",
+            "mysql",
+            "queue.rabbit",
+            "keystone",
+            "glance",
+            "nova",
+            "mysql.client",
+            "horizon",
+            "neutron",
+            "neutron.openvswitch"
+        ],
+        "compute": [
+            "generics.host",
+            "generics.havana",
+            "generics.ntp",
+            "mysql.client",
+            "nova.compute_kvm",
+            "neutron.openvswitch"
+        ]
+    },
+    "salt-master": "",
+    "cluster_type": "openstack",
+    "config-folder": "cluster1",
+    "keystone.token": "24811ee3f7f09915bef0",
+    "keystone.endpoint": "http://hawk:35357/v2.0",
+    "keystone": {
+        "token": "24811ee3f7f09915bef0",
+        "endpoint": "http://hawk:35357/v2.0",
+        "dbname": "keystone",
+        "tenants": {
+            "admin": {
+                "users": {
+                    "admin": {
+                        "password": "admin_pass",
+                        "email": "salt@csscorp.com",
+                        "role": "admin"
+                    }
+                }
+            },
+            "service": {
+                "users": {
+                    "glance": {
+                        "password": "glance_pass",
+                        "email": "salt@csscorp.com",
+                        "role": "admin"
+                    },
+                    "nova": {
+                        "password": "nova_pass",
+                        "email": "salt@csscorp.com",
+                        "role": "admin"
+                    },
+                    "cinder": {
+                        "password": "cinder_pass",
+                        "email": "salt@csscorp.com",
+                        "role": "admin"
+                    },
+                    "neutron": {
+                        "password": "neutron_pass",
+                        "email": "salt@csscorp.com",
+                        "role": "admin"
+                    }
+                }
+            }
+        },
+        "roles": [
+            "admin",
+            "Member"
+        ],
+        "services": {
+            "keystone": {
+                "service_type": "identity",
+                "description": "keystone identity service",
+                "endpoint": {
+                    "publicurl": "http://{{ grains['id'] }}:5000/v2.0",
+                    "internalurl": "http://{{ grains['id'] }}:5000/v2.0",
+                    "adminurl": "http://{{ grains['id'] }}:35357/v2.0"
+                }
+            },
+            "glance": {
+                "service_type": "image",
+                "description": "glance image service",
+                "endpoint": {
+                    "publicurl": "http://{{ grains['id'] }}:9292",
+                    "internalurl": "http://{{ grains['id'] }}:9292",
+                    "adminurl": "http://{{ grains['id'] }}:9292"
+                }
+            },
+            "nova": {
+                "service_type": "compute",
+                "description": "nova compute service",
+                "endpoint": {
+                    "publicurl": "http://{{ grains['id'] }}:8774/v2/%(tenant_id)s",
+                    "internalurl": "http://{{ grains['id'] }}:8774/v2/%(tenant_id)s",
+                    "adminurl": "http://{{ grains['id'] }}:8774/v2/%(tenant_id)s"
+                }
+            },
+            "cinder": {
+                "service_type": "volume",
+                "description": "cinder volume service",
+                "endpoint": {
+                    "publicurl": "http://{{ grains['id'] }}:8776/v1/%(tenant_id)s",
+                    "internalurl": "http://{{ grains['id'] }}:8776/v1/%(tenant_id)s",
+                    "adminurl": "http://{{ grains['id'] }}:8776/v1/%(tenant_id)s"
+                }
+            },
+            "neutron": {
+                "service_type": "network",
+                "description": "Openstack network service",
+                "endpoint": {
+                    "publicurl": "http://{{ grains['id'] }}:9696",
+                    "internalurl": "http://{{ grains['id'] }}:9696",
+                    "adminurl": "http://{{ grains['id'] }}:9696"
+                }
+            }
+        }
+    },
+    "mysql": {
+        "keystone": {
+            "username": "keystone",
+            "password": "keystone_pass",
+            "sync": "keystone-manage db_sync",
+            "service": "keystone"
+        },
+        "glance": {
+            "username": "glance",
+            "password": "glance_pass",
+            "sync": "glance-manage db_sync",
+            "service": "glance"
+        },
+        "cinder": {
+            "username": "cinder",
+            "password": "cinder_pass"
+        },
+        "nova": {
+            "username": "nova",
+            "password": "nova_pass",
+            "sync": "nova-manage db sync",
+            "service": "nova-api"
+        },
+        "neutron": {
+            "username": "neutron",
+            "password": "neutron_pass"
+        },
+        "dash": {
+            "username": "dash",
+            "password": "dash_pass"
+        }
+    },
+    "DM": {
+        "cpu": {
+            "threshold": 70
+        },
+        "memory": {
+            "threshold": 70
+        },
+        "swap": {
+            "threshold": 70
+        }
+    },
+    "hosts": {
+        "hawk": "",
+        "lammer": ""
+    }
+}
+</pre>
+
+<p>What we saw above is the <a href="http://docs.saltstack.com/topics/pillar/" title="Salt Pillar">pillar</a> definition. Should you need to change your cluster definition you do so by changing the pillar and synchronising the changes. Although this file defines your cluster entirely the file in itself can do nothing. The entire project has been checked in <a href="https://github.com/Akilesh1597/openstack-automation/" title="Openstack-Automation">here</a>.</p>
+
+<p>To test it create a new <a href="http://docs.saltstack.com/ref/file_server/index.html#environments" title="Salt Environments">environment</a> in your salt master configuration file and point it to where you have downloaded the project like so.</p>
+
+<pre>
+
+file_roots: 
+  base: 
+    - /srv/salt/ 
+  havana: 
+    - (project-directory)/file 
+pillar_roots: 
+  base: 
+    - /srv/pillar 
+  havana: 
+    - (project-directory)/pillar 
+
+</pre>
+
+<p>This will add the havana environment to your saltstack. The 'file_roots' will have <a href="http://docs.saltstack.com/topics/tutorials/starting_states.html" title="Salt States">state definitions</a> in a bunch of '.sls' files and the few special directories, while the 'pillar_roots' has your cluster definition. </p>
+
+<p>At this stage I assume that you have two machines 'hawk' and 'lammer' (these are their hostnames as well as their minion id). The pillar definition file shown at the begining has a key 'cluster_type'. We will use this key to deliver commands to the two machines alone like so.</p>
+
+<pre>
+salt -C 'I@cluster_type:openstack' state.highstate
+</pre>
+
+<p>This instructs all the minions those who have 'cluster_type=openstack' defined in their pillar data to download all the state defined for them and execute the same. Once the command is run once you will note that several states have failed. Not to worry. Run the command again. You will note that each time you run will bring your cluster closer to completion. At third run you will have all your states applied successfully. At this stage you can login to your newly installed openstack setup 'http://hawk/horizon'.</p>
+
+<p>The states have done almost all the stuff for you. You still have to follow <a href="http://docs.openstack.org/trunk/install-guide/install/apt/content/neutron-deploy-use-cases.html" title="Networking Options">neutron deployment use cases</a> to have your network up and running. This involves creation of your intergration bridge, external bridge, physical networks etc.</p>
+
+<h1>
+<a name="note" class="anchor" href="#note"><span class="octicon octicon-link"></span></a>Note</h1>
+
+<p>The state generics.havana installs a file at /etc/apt/apt.conf.d/01proxy. This points to your salt master as <a href="https://help.ubuntu.com/community/Apt-Cacher-Server" title="Apt Cache">apt cache proxy</a>. If you do not want this to happen comment the contents of 'file_root/config/cluster1/common/etc/apt/apt.conf.d/01proxy'</p>
+
+<pre>
+sed -i "s/^Acquire/#Acquire/" /etc/apt/apt.conf.d/01proxy
+</pre>
+
+<h1>
+<a name="cluster-definition" class="anchor" href="#cluster-definition"><span class="octicon octicon-link"></span></a>Cluster Definition</h1>
+
+<p>To make things clear lets have a look at a part of the pillar configuration.</p>
+
+<pre>
+    "controller": [
+        "hawk"
+    ],
+    "compute": [
+        "lammer"
+    ],
+    "install": {
+        "controller": [
+            "generics.host",
+            "generics.havana",
+            "generics.ntp",
+            "mysql",
+            "queue.rabbit",
+            "keystone",
+            "glance",
+            "nova",
+            "mysql.client",
+            "horizon",
+            "neutron",
+            "neutron.openvswitch"
+        ],
+        "compute": [
+            "generics.host",
+            "generics.havana",
+            "generics.ntp",
+            "mysql.client",
+            "nova.compute_kvm",
+            "neutron.openvswitch"
+        ]
+    },
+    "config-folder": "cluster1",
+</pre>
+
+<p>First define one controller node, which is 'hawk', and one compute node 'lammer'. </p>
+
+<p>Under the “install” section we define what states to apply on a machine in order to deploy a controller or a compute node.</p>
+
+<p>The “config-folder” options tells the minions where to get their configuration files from. Setting it to 'cluster1' will tell the minions to get their configuration files from 'file_roots/config/cluster1/'. These have been used extensively in state definitions.</p>
+
+<p>The rest of the pillar definition is self explanatory.</p>
+
+<h1>
+<a name="adding-a-new-cluster-entity" class="anchor" href="#adding-a-new-cluster-entity"><span class="octicon octicon-link"></span></a>Adding a new cluster entity</h1>
+
+<p>Lets say you need a network node all you have to do is redefine the cluster and sync.</p>
+
+<p>To redefine first we need to add a new entity under "install" and then add machines under that entity like so</p>
+
+<pre>
+    "controller": [
+        "hawk"
+    ],
+    "compute": [
+        "lammer"
+    ],
+    "network": [
+        "goshawk"
+    ],
+    "install": {
+        "controller": [
+            "generics.host",
+            "generics.havana",
+            "generics.ntp",
+            "mysql",
+            "queue.rabbit",
+            "keystone",
+            "glance",
+            "nova",
+            "mysql.client",
+            "horizon"
+        ],
+        "network": [
+            "neutron",
+            "neutron.openvswitch"
+        ],
+        "compute": [
+            "generics.host",
+            "generics.havana",
+            "generics.ntp",
+            "mysql.client",
+            "nova.compute_kvm",
+            "neutron.openvswitch"
+        ]
+    },
+    "config-folder": "cluster1",
+</pre>
+
+<p>After this you need to create a directory 'file_root/config/cluster1/goshawk/' and put whatever configurations you want under that.
+For a network node the only file that needs to be there is '/etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini'</p>
+
+<h1>
+<a name="adding-new-compute-node" class="anchor" href="#adding-new-compute-node"><span class="octicon octicon-link"></span></a>Adding new compute node</h1>
+
+<p>Follow the below steps to have a new compute node in your cluster</p>
+
+<ol>
+<li>Add a new machine to salt-master.</li>
+<li>Add it under the list of compute nodes like so
+<pre><br>
+"compute": [
+     "lammer",
+     "goshawk"
+]
+</pre>
+</li>
+<li>Under 'file_root/config/cluster1/' add a new directory named 'goshawk'. Copy all the files from 'file_root/config/cluster1/lammer/' into 'file_root/config/cluster1/goshawk'.</li>
+<li>Run the below command to modify configuration files according to new compute node hostname
+<code>
+find file_root/config/cluster1/goshawk -type f -name *.* -exec sed -i 's/lammer/goshawk/' {} \;
+</code>
+</li>
+<li>Finally sync the cluster
+<pre>
+salt -C 'I@cluster_type:openstack' state.highstate
+</pre>
+</li>
+</ol><p>The above methodology can be used to perform auto scaling, which off course is the next project.</p>
+
+<h1>
+<a name="removing-a-node" class="anchor" href="#removing-a-node"><span class="octicon octicon-link"></span></a>Removing a node</h1>
+
+<p>Change the file 'pillar_root/top.sls' from </p>
+
+<pre>
+havana:
+  hawk:
+    - cluster1
+  lammer:
+    - cluster1
+</pre>
+
+<p>to</p>
+
+<pre>
+havana:
+  hawk:
+    - cluster1_inverse
+  lammer:
+    - cluster1_inverse
+</pre>
+
+<p>Now run </p>
+
+<pre>
+salt (machine id here) state.highstate
+</pre>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Openstack-automation maintained by <a href="https://github.com/Akilesh1597">Akilesh1597</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
